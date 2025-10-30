@@ -1,0 +1,71 @@
+trigger:
+  - main
+
+variables:
+  imageName: 'java-app-sprint4'
+  acrName: 'acrsprint4'
+  resourceGroup: 'rg-sprint4'
+  containerName: 'java-app-sprint4'
+  location: 'brazilsouth'
+  postgresUser: 'pablo'
+  postgresPassword: '29m02c07p'
+  postgresDb: 'mottu'
+
+stages:
+  - stage: Build
+    displayName: "Build da imagem e push para o ACR"
+    jobs:
+      - job: Build
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: Maven@4
+            displayName: "Build com Maven"
+            inputs:
+              mavenPomFile: 'pom.xml'
+              goals: 'clean package -DskipTests'
+
+          - task: Docker@2
+            displayName: "Build e Push da imagem para o ACR"
+            inputs:
+              containerRegistry: '$(acrName).azurecr.io'
+              repository: '$(imageName)'
+              command: 'buildAndPush'
+              Dockerfile: '**/Dockerfile'
+              tags: |
+                latest
+
+  - stage: Deploy
+    displayName: "Deploy no Azure Container Instance (ACI)"
+    dependsOn: Build
+    jobs:
+      - job: Deploy
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: AzureCLI@2
+            displayName: "Deploy no Azure Container Instance"
+            inputs:
+              azureSubscription: 'ServiceConnectionAzure'  # Nome da conexão configurada no DevOps
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Criando Grupo de Recursos e ACR..."
+                az group create --name $(resourceGroup) --location $(location)
+                az acr create --resource-group $(resourceGroup) --name $(acrName) --sku Basic --admin-enabled true || echo "ACR já existe"
+                az acr login --name $(acrName)
+                
+                echo "Fazendo deploy no ACI..."
+                az container create \
+                  --resource-group $(resourceGroup) \
+                  --name $(containerName) \
+                  --image $(acrName).azurecr.io/$(imageName):latest \
+                  --cpu 1 --memory 1.5 \
+                  --registry-login-server $(acrName).azurecr.io \
+                  --registry-username $(az acr credential show --name $(acrName) --query "username" -o tsv) \
+                  --registry-password $(az acr credential show --name $(acrName) --query "passwords[0].value" -o tsv) \
+                  --ports 8080 \
+                  --environment-variables \
+                    SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-sprint4:5432/mottu \
+                    SPRING_DATASOURCE_USERNAME=pablo \
+                    SPRING_DATASOURCE_PASSWORD=29m02c07p
