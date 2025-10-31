@@ -31,7 +31,8 @@ stages:
               containerRegistry: 'challenge_sprint4'
               repository: '$(imageName)'
               command: 'buildAndPush'
-              Dockerfile: '**/Dockerfile'
+              Dockerfile: 'Dockerfile'
+              buildContext: '.'
               tags: |
                 latest
 
