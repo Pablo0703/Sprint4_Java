@@ -26,8 +26,8 @@ stages:
           - task: Docker@2
             displayName: "Build e Push da imagem para o ACR"
             inputs:
-              containerRegistry: 'challenge_sprint4'     # 🔥 Nome da Service Connection do ACR
-              repository: 'java-app-sprint4'             # 🔥 Nome da imagem
+              containerRegistry: 'challenge_sprint4'     
+              repository: 'java-app-sprint4'             
               command: 'buildAndPush'
               Dockerfile: 'Dockerfile'
               buildContext: '.'
