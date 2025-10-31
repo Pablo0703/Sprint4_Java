@@ -28,7 +28,7 @@ stages:
           - task: Docker@2
             displayName: "Build e Push da imagem para o ACR"
             inputs:
-              containerRegistry: 'challenge_sprint4'   # ✅ Service Connection correta
+              containerRegistry: 'challenge_sprint4'
               repository: '$(imageName)'
               command: 'buildAndPush'
               Dockerfile: '**/Dockerfile'
