@@ -1,7 +1,7 @@
 # ==========================
 # Etapa 1: Build da aplicação
 # ==========================
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+FROM maven:3.9.6-amazoncorretto-17 AS build
 WORKDIR /app
 
 # Copia o arquivo pom.xml e baixa as dependências para cache
@@ -15,7 +15,7 @@ RUN mvn clean package -DskipTests
 # ==========================
 # Etapa 2: Execução da aplicação
 # ==========================
-FROM eclipse-temurin:17-jdk-slim
+FROM amazoncorretto:17-alpine
 WORKDIR /app
 
 # Copia o JAR gerado da etapa de build
