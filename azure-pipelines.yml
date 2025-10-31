@@ -58,16 +58,15 @@ stages:
                 
                 echo "🚀 Fazendo deploy no ACI..."
                 az container create \
-                  --resource-group $(resourceGroup) \
-                  --name $(containerName) \
-                  --image $(acrName).azurecr.io/$(imageName):latest \
-                  --cpu 1 --memory 1.5 \
-                  --os-type Linux \
-                  --registry-login-server $(acrName).azurecr.io \
-                  --registry-username $(az acr credential show --name $(acrName) --query "username" -o tsv) \
-                  --registry-password $(az acr credential show --name $(acrName) --query "passwords[0].value" -o tsv) \
-                  --ports 8080 \
-                  --environment-variables \
-                    SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-sprint4:5432/mottu \
-                    SPRING_DATASOURCE_USERNAME=$(postgresUser) \
-                    SPRING_DATASOURCE_PASSWORD=$(postgresPassword)
+                --resource-group $(resourceGroup) \
+                --name $(containerName) \
+                --image $(acrName).azurecr.io/$(imageName):latest \
+                --cpu 1 --memory 1.5 \
+                --os-type Linux \
+                --registry-login-server $(acrName).azurecr.io \
+                --registry-username $(az acr credential show --name $(acrName) --query "username" -o tsv) \
+                --registry-password $(az acr credential show --name $(acrName) --query "passwords[0].value" -o tsv) \
+                --ports 8080 \
+                --environment-variables SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-sprint4:5432/mottu \
+                        SPRING_DATASOURCE_USERNAME=$(POSTGRES_USER) \
+                        SPRING_DATASOURCE_PASSWORD=$(POSTGRES_PASSWORD)
