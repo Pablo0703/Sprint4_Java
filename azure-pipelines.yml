@@ -46,7 +46,7 @@ stages:
           - task: AzureCLI@2
             displayName: "Deploy no Azure Container Instance"
             inputs:
-              azureSubscription: 'ServiceConnectionAzure'  # 🔧 Mantenha o nome da conexão do tipo 'Azure Resource Manager' usada no DevOps
+              azureSubscription: 'MyAzureSubscription'
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
