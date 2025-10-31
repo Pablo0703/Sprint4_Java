@@ -7,7 +7,6 @@ variables:
   resourceGroup: 'rg-sprint4'
   containerName: 'java-app-sprint4'
   location: 'brazilsouth'
-  postgresDb: 'mottu'
 
 stages:
   - stage: Build
@@ -25,9 +24,9 @@ stages:
 
           - task: Docker@2
             displayName: "Build e Push da imagem para o ACR"
-            inputs:
-              containerRegistry: 'challenge_sprint4'     
-              repository: 'java-app-sprint4'             
+            inputs:                                 # ✅ Corrigido: bloco inputs dentro da task
+              containerRegistry: 'challenge_sprint4'   # ✅ Nome da conexão certa
+              repository: 'java-app-sprint4'
               command: 'buildAndPush'
               Dockerfile: 'Dockerfile'
               buildContext: '.'
@@ -45,27 +44,29 @@ stages:
           - task: AzureCLI@2
             displayName: "Deploy no Azure Container Instance"
             inputs:
-              azureSubscription: 'MyAzureSubscription'
+              azureSubscription: 'MyAzureSubscription'  
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                echo "🔧 Criando Grupo de Recursos e ACR..."
-                az group create --name $(resourceGroup) --location $(location)
-                az acr create --resource-group $(resourceGroup) --name $(acrName) --sku Basic --admin-enabled true || echo "ACR já existe"
-                az acr login --name $(acrName)
-                
+                echo "🔧 Verificando se grupo de recursos existe..."
+                az group show --name $(resourceGroup) || az group create --name $(resourceGroup) --location $(location)
+
+                echo "🔑 Obtendo credenciais do ACR..."
+                ACR_USERNAME=$(az acr credential show --name $(acrName) --query "username" -o tsv)
+                ACR_PASSWORD=$(az acr credential show --name $(acrName) --query "passwords[0].value" -o tsv)
+
                 echo "🚀 Fazendo deploy no ACI..."
                 az container create \
                   --resource-group $(resourceGroup) \
                   --name $(containerName) \
-                  --image $(acrName).azurecr.io/java-app-sprint4:latest \
+                  --image $(acrName).azurecr.io/$(imageName):latest \
                   --cpu 1 --memory 1.5 \
                   --os-type Linux \
                   --registry-login-server $(acrName).azurecr.io \
-                  --registry-username $(az acr credential show --name $(acrName) --query "username" -o tsv) \
-                  --registry-password $(az acr credential show --name $(acrName) --query "passwords[0].value" -o tsv) \
+                  --registry-username $ACR_USERNAME \
+                  --registry-password $ACR_PASSWORD \
                   --ports 8080 \
                   --environment-variables \
-                    SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-sprint4:5432/$(postgresDb) \
+                    SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-sprint4:5432/$(POSTGRES_DB) \
                     SPRING_DATASOURCE_USERNAME=$(POSTGRES_USER) \
                     SPRING_DATASOURCE_PASSWORD=$(POSTGRES_PASSWORD)
