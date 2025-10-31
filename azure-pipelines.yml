@@ -62,6 +62,7 @@ stages:
                   --name $(containerName) \
                   --image $(acrName).azurecr.io/$(imageName):latest \
                   --cpu 1 --memory 1.5 \
+                  --os-type Linux \
                   --registry-login-server $(acrName).azurecr.io \
                   --registry-username $(az acr credential show --name $(acrName) --query "username" -o tsv) \
                   --registry-password $(az acr credential show --name $(acrName) --query "passwords[0].value" -o tsv) \
