@@ -1,30 +1,28 @@
-# Use uma imagem base do Ubuntu para construção
+# ==========================
+# Etapa 1: Build da aplicação
+# ==========================
 FROM maven:3.9.6-eclipse-temurin-17 AS build
-
-# Atualize o repositório e instale o JDK e Maven
-RUN apt-get update && apt-get install openjdk-17-jdk maven -y
-
-# Defina o diretório de trabalho para a construção
 WORKDIR /app
 
-# Copie o arquivo pom.xml e o código-fonte do projeto para o contêiner
+# Copia o arquivo pom.xml e baixa as dependências para cache
 COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Copia o código-fonte e realiza o build
 COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Execute a construção do Maven ignorando os testes
-RUN mvn clean install -DskipTests
-
-# Use uma imagem base mais leve para executar o aplicativo
-FROM openjdk:17-jdk-slim
-
-# Expor a porta 8080
-EXPOSE 8080
-
-# Defina o diretório de trabalho
+# ==========================
+# Etapa 2: Execução da aplicação
+# ==========================
+FROM eclipse-temurin:17-jdk-slim
 WORKDIR /app
 
-# Copie o arquivo JAR gerado para a imagem final
+# Copia o JAR gerado da etapa de build
 COPY --from=build /app/target/*.jar app.jar
 
-# Comando para executar o aplicativo
+# Expõe a porta da aplicação
+EXPOSE 8080
+
+# Comando de inicialização
 ENTRYPOINT ["java", "-jar", "app.jar"]
