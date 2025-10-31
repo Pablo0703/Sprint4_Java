@@ -28,7 +28,7 @@ stages:
           - task: Docker@2
             displayName: "Build e Push da imagem para o ACR"
             inputs:
-              containerRegistry: '$(acrName).azurecr.io'
+              containerRegistry: 'challenge_sprint4'   # ✅ Service Connection correta
               repository: '$(imageName)'
               command: 'buildAndPush'
               Dockerfile: '**/Dockerfile'
@@ -46,16 +46,16 @@ stages:
           - task: AzureCLI@2
             displayName: "Deploy no Azure Container Instance"
             inputs:
-              azureSubscription: 'ServiceConnectionAzure'  # Nome da conexão configurada no DevOps
+              azureSubscription: 'ServiceConnectionAzure'  # 🔧 Mantenha o nome da conexão do tipo 'Azure Resource Manager' usada no DevOps
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                echo "Criando Grupo de Recursos e ACR..."
+                echo "🔧 Criando Grupo de Recursos e ACR..."
                 az group create --name $(resourceGroup) --location $(location)
                 az acr create --resource-group $(resourceGroup) --name $(acrName) --sku Basic --admin-enabled true || echo "ACR já existe"
                 az acr login --name $(acrName)
                 
-                echo "Fazendo deploy no ACI..."
+                echo "🚀 Fazendo deploy no ACI..."
                 az container create \
                   --resource-group $(resourceGroup) \
                   --name $(containerName) \
@@ -67,5 +67,5 @@ stages:
                   --ports 8080 \
                   --environment-variables \
                     SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db-sprint4:5432/mottu \
-                    SPRING_DATASOURCE_USERNAME=pablo \
-                    SPRING_DATASOURCE_PASSWORD=29m02c07p
+                    SPRING_DATASOURCE_USERNAME=$(postgresUser) \
+                    SPRING_DATASOURCE_PASSWORD=$(postgresPassword)
