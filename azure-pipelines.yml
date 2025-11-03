@@ -2,6 +2,9 @@ trigger:
   - main
 
 variables:
+  SPRING_DATASOURCE_URL: 'jdbc:postgresql://localhost:5432/mottu'
+  SPRING_DATASOURCE_USERNAME: 'Pablo'
+  SPRING_DATASOURCE_PASSWORD: '29m02c07p'
   imageName: 'java-app-sprint4'
   acrName: 'acrsprint4'
   resourceGroup: 'rg-sprint4'
